@@ -38,7 +38,7 @@ allCurrencies = pd.read_csv('../input/crypto-markets.csv', parse_dates=['date'],
 rankingDate = '2018-11-22'
 beginDate = '2018-05-29'
 endDate = '2018-11-29'
-top100Currencies = allCurrencies[rankingDate].query('ranknow <= 100')
+top100Currencies = allCurrencies[rankingDate].query('ranknow <= 4')
 top100CurrenciesNames = list(top100Currencies["name"])
 
 allCurrenciesFilteredByDate = allCurrencies[beginDate:endDate]
@@ -113,11 +113,11 @@ plt.show()
 #### 2nd approach
 # calculate daily and annual returns of the stocks
 returns_daily = markowitzDataset.pct_change()
-returns_annual = returns_daily.mean() * 250
+returns_annual = returns_daily.mean() * 366
 
 # get daily and covariance of returns of the stock
 cov_daily = returns_daily.cov()
-cov_annual = cov_daily * 250
+cov_annual = cov_daily * 366
 
 # empty lists to store returns, volatility and weights of imiginary portfolios
 port_returns = []
@@ -164,12 +164,15 @@ df = df[column_order]
 
 # plot frontier, max sharpe & min Volatility values with a scatterplot
 plt.style.use('seaborn-dark')
-df.plot.scatter(x='Volatility', y='Returns', c='Sharpe Ratio',
-                cmap='RdYlGn', edgecolors='black', figsize=(10, 8), grid=True)
+#df.plot.scatter(x='Volatility', y='Returns', c='Sharpe Ratio',
+#                cmap='RdYlGn', edgecolors='black', figsize=(10, 8), grid=True)
+fig, ax = plt.subplots()
+df.plot(kind="scatter", x='Volatility', y='Returns', c='Sharpe Ratio', cmap='RdYlGn', ax=ax);
 plt.xlabel('Volatility (Std. Deviation)')
 plt.ylabel('Expected Returns')
 plt.title('Efficient Frontier')
 plt.show()
+
 
 
 
@@ -227,17 +230,17 @@ def random_portfolio(returns):
     return mu, sigma
 
 ## Uncomment to see visualization
-#n_portfolios = 500
-#means, stds = np.column_stack([
-#    random_portfolio(return_vec) 
-#    for _ in xrange(n_portfolios)
-#])
+n_portfolios = 500
+means, stds = np.column_stack([
+    random_portfolio(return_vec) 
+    for _ in xrange(n_portfolios)
+])
 
-#plt.plot(stds, means, 'o', markersize=5)
-#plt.xlabel('std')
-#plt.ylabel('mean')
-#plt.title('Mean and standard deviation of returns of randomly generated portfolios')
-#plt.show()
+plt.plot(stds, means, 'o', markersize=5)
+plt.xlabel('std')
+plt.ylabel('mean')
+plt.title('Mean and standard deviation of returns of randomly generated portfolios')
+plt.show()
 
 
 
@@ -290,7 +293,7 @@ def optimal_portfolio(returns):
     x1 = np.sqrt(m1[2] / m1[0])
     # CALCULATE THE OPTIMAL PORTFOLIO
     wt = solvers.qp(opt.matrix(x1 * S), -pbar, G, h, A, b)['x'] #Is this the tangency portfolio? X1 = slope from origin?  
-    print "wt, optimal portfolio:", wt
+    #print "wt, optimal portfolio:", wt
     return np.asarray(wt), returns, risks, port_list
 
 
@@ -340,7 +343,7 @@ mean_returns = [1.5,3.0,5.0,2.5] # Returns in DALYs
 
 weights, returns, risks, portfolios = covmean_portfolio(covariances, mean_returns)
 
-
+weights, returns, risks, portfolios = optimal_portfolio(returns_daily)
 #plt.plot(stds, means, 'o') #if you uncomment, need to run 500 porfolio random simulation above
 
 ## Matplotlib Visualization:
@@ -356,21 +359,21 @@ plt.show()
 
 # fig, ax = plt.subplots()
 # ax.grid(True, alpha=0.3)
-
+#
 # labels = []
 # for i in range(len(risks)):
 #     label = " Risk: " + str(risks[i]) + " Return: " + str(returns[i]) + " Portfolio Weights: " + str(portfolios[i])
 #     labels.append(str(label))
-
+#
 # points = ax.plot(risks, returns, 'o', color='b',
 #                  mec='k', ms=15, mew=1, alpha=.6)
-
+#
 # ax.set_xlabel('standard deviation')
 # ax.set_ylabel('return')
 # ax.set_title('Efficient Frontier', size=20)
-
+#
 # tooltip = plugins.PointHTMLTooltip(points[0], labels,
 #                                    voffset=10, hoffset=10)
 # plugins.connect(fig, tooltip)
-
+#
 # mpld3.show()
